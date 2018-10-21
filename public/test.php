@@ -1,42 +1,47 @@
 <?php
 echo "1";
 
+require_once 'db.php'; // подключаем скрипт
 
-$mass = [id => '1',
-    name => 'odin',
-    age => '12',
-    email=> 'dsf@mail.ru',
-    password=> 'sdf3rfs',
-    birthday=>'01.12.31',
-    ip=> '123.123.123.123',
-    time=> '12.12',
-    token =>  'sdfewfsfsdds',
-    sourse => '23wewe3rwefge4ferge'
-];
-var_dump($mass);
-echo ($mass['name']);
-
-$template = [id=> '',
-    name=> '',
-    age=> '',
-    email=> '',
-    password=> '',
-    birthday=> '',
-    ip=> '',
-    time=> '',
-    token=> '',
-    sourse=> ''];
-
-
-var_dump(array_diff_key($template, $mass));
-
-
-/*foreach ($template as $key => $value)
+// подключаемся к серверу
+$link = mysqli_connect($host, $user, $password, $database)
+or die("Ошибка " . mysqli_error($link));
+// выполняем операции с базой данных
+$query ="SELECT * FROM item_quan";
+$result = mysqli_query($link, $query) or die("Ошибка " . mysqli_error($link));
+if($result)
 {
-    print_r($mass[$value]);
-    $result = array_search($mass, $value );
-    print_r($result);
-}*/
+
+        $rows = mysqli_num_rows($result); // количество полученных строк
+
+        echo "<table><tr><th>Id</th><th>Название</th><th>Колличество</th></tr>";
+        for ($i = 0 ; $i < $rows ; ++$i)
+        {
+            $row = mysqli_fetch_row($result);
+            echo "<tr>";
+            for ($j = 0 ; $j < 3 ; ++$j) echo "<td>$row[$j]</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+
+        // очищаем результат
+        mysqli_free_result($result);
+
+
+
+
+    echo "Выполнение запроса прошло успешно";
+    var_dump($result);
+
+}
+// закрываем подключение
+mysqli_close($link);
+
+
+
+
+
+
 
 
 
