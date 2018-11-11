@@ -1,8 +1,8 @@
 <?php
 
 require __DIR__ . '\..\vendor\autoload.php';
-require_once 'db.php'; // подключаем скрипт
-require_once 'preparedata.php'; // подключаем скрипт
+require_once 'db.php'; // подключаем файл конфигурации БД
+require_once 'preparedata.php'; // подключаем скрипт содержащий пользовательские функции
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 // Проверяем загружен ли файл
@@ -22,9 +22,13 @@ $reader->setReadDataOnly(TRUE);
 $worksheet = $spreadsheet->getActiveSheet();
 
 //создаине коннекта с БД
-$link = mysqli_connect($host, $user, $password, $database)
-or die("Ошибка " . mysqli_error($link));
-
+$dsn = "mysql:host=$host;dbname=$database;charset=$charset";
+$opt = [
+    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_EMULATE_PREPARES   => false,
+];
+$pdo = new PDO($dsn, $user, $password, $opt);
 
 //обьявление колонок из которых будут забираться занчения
 $nameColumn = 'A';
@@ -38,19 +42,20 @@ for ($row = 1; $row <= $lastRow; $row++) {
     if (strpos($cellvalue, ', шт')>0){
         $attrname=cutAndEncodetoUTF($cellvalue);// Перекодирование строки и обрезка ШТ.
         $Quantity = $worksheet->getCell($QuantityColumn.$row)->getValue();// забор значения колличества товара
-        $query ="UPDATE oc_product SET quantity=$Quantity WHERE sku LIKE '$attrname'";// запрос к БД на изменения колличесва товара
+        $stmt = $pdo->prepare('UPDATE oc_product SET quantity=? WHERE sku LIKE ?');
+        if ($stmt->execute([$Quantity,$attrname])){
+            echo "Выполнение запроса прошло успешно". "\n";
+        }
+        else{
+            echo "Ошибка";
+        }
 
-
-
-        $result = mysqli_query($link, $query) or die("Ошибка " . mysqli_error($link));
-        var_dump($result);
-        echo "Выполнение запроса прошло успешно";
     }
 
 }
-
+$pdo=null;
 // закрываем подключение
-mysqli_close($link);
+//mysqli_close($link);
 
 
 
