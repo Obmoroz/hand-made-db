@@ -1,0 +1,15 @@
+{
+  "require": {
+    "monolog/monolog": "1.0.*",
+    "phpoffice/phpspreadsheet":"*"
+  },
+
+  "autoload": {
+    "psr-4": {
+      "Services\\": "services",
+      "App\\": "app"
+    }
+  }
+
+
+}
