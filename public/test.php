@@ -49,7 +49,7 @@ for ($row = 1; $row <= $lastRow; $row++) {
         $Quantity = $worksheet->getCell($QuantityColumn.$row)->getValue();// забор значения колличества товара
 
         $stmt = $pdo->prepare('SELECT * FROM  oc_product  WHERE sku LIKE ?');
-        if ($stmt->execute([$attrname])!=0){
+        if ($stmt->execute([$attrname.'%'])!=0){
             echo '<tr>';
             $rez = $stmt->fetchAll();
             if (count($rez)!=0){
@@ -58,15 +58,16 @@ for ($row = 1; $row <= $lastRow; $row++) {
                     echo '<td >'. "Колличество не изменилось".'</td>' ;
                     echo '<td>'. $attrname.'</td>' ;
                 } else{
+
                     $stmt = $pdo->prepare('UPDATE oc_product SET quantity=? WHERE sku LIKE ?');
 
-                    if ($stmt->execute([$Quantity,$attrname])) {
+                    if ($stmt->execute([$Quantity,$attrname.'%'])) {
 
                        // echo "изменилось";
                     }
                 }
             }else{
-                echo '<td bgcolor="red">'. "Не нашел такого названия в БД".'</td>' ;
+                echo '<td bgcolor="red">'. "Не нашел такого названия в поле Артикул".'</td>' ;
                 echo '<td>'. $attrname.'</td>' ;
             }
 
