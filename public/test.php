@@ -10,8 +10,9 @@ if(is_uploaded_file($_FILES['filename']['tmp_name']))
 {
     // Если файл загружен успешно, перемещаем его
     // из временной директории в конечную
-    var_dump($_FILES['filename']);
-    var_dump(move_uploaded_file($_FILES['filename']['tmp_name'], __DIR__ .'\..\upload\upload.xlsx'));
+    //var_dump($_FILES['filename']);
+    //var_dump();
+    move_uploaded_file($_FILES['filename']['tmp_name'], __DIR__ .'\..\upload\upload.xlsx');
 } else {
     echo('Ошибка загрузки файла');
 }
@@ -34,6 +35,10 @@ $pdo = new PDO($dsn, $user, $password, $opt);
 $nameColumn = 'A';
 $QuantityColumn = 'F';
 $lastRow = $worksheet->getHighestRow();//забираем файлик
+echo '<table border="1">';
+echo '<tr>';
+echo '<td ><b>'. "Результат запроса".'</b></td>' ;
+echo '<td><b>'. "Название товара в xlxs файле".'</b></td>' ;
 for ($row = 1; $row <= $lastRow; $row++) {
     $cell = $worksheet->getCell($nameColumn.$row);
     $cellvalue=$cell->getValue();
@@ -42,13 +47,57 @@ for ($row = 1; $row <= $lastRow; $row++) {
     if (strpos($cellvalue, ', шт')>0){
         $attrname=cutAndEncodetoUTF($cellvalue);// Перекодирование строки и обрезка ШТ.
         $Quantity = $worksheet->getCell($QuantityColumn.$row)->getValue();// забор значения колличества товара
-        $stmt = $pdo->prepare('UPDATE oc_product SET quantity=? WHERE sku LIKE ?');
-        if ($stmt->execute([$Quantity,$attrname])){
-            echo "Выполнение запроса прошло успешно". "\n";
+
+        $stmt = $pdo->prepare('SELECT * FROM  oc_product  WHERE sku LIKE ?');
+        if ($stmt->execute([$attrname])!=0){
+            echo '<tr>';
+            $rez = $stmt->fetchAll();
+            if (count($rez)!=0){
+                //var_dump($rez[0]['quantity']);//[0]['quantity']
+                if ($rez[0]['quantity']==$Quantity){
+                    echo '<td >'. "Колличество не изменилось".'</td>' ;
+                    echo '<td>'. $attrname.'</td>' ;
+                } else{
+                    $stmt = $pdo->prepare('UPDATE oc_product SET quantity=? WHERE sku LIKE ?');
+
+                    if ($stmt->execute([$Quantity,$attrname])) {
+
+                       // echo "изменилось";
+                    }
+                }
+            }else{
+                echo '<td bgcolor="red">'. "Не нашел такого названия в БД".'</td>' ;
+                echo '<td>'. $attrname.'</td>' ;
+            }
+
+            echo '</tr>';
         }
         else{
-            echo "Ошибка";
+            echo "Ошибка выполнения запроса";
+            echo '</tr>';
         }
+
+
+
+
+        /*$stmt = $pdo->prepare('UPDATE oc_product SET quantity=? WHERE sku LIKE ?');
+
+        if ($stmt->execute([$Quantity,$attrname])){
+
+            echo "Запрос выполнен";
+        }
+        else{
+            echo "Ошибка выполнения запроса";
+        }
+
+
+        if (var_dump($stmt->rowCount()>0)){
+
+            echo "Значение обновлено". "\n";
+        }
+        else{
+            echo "Значение не обновлено". "\n";
+        }*/
 
     }
 
